@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cairiton.mega.assembler.ItemCompraModelAssembler;
+import com.cairiton.mega.assembler.ItemDeCompraDTOAssembler;
+import com.cairiton.mega.dto.ItemCompraDTO;
+import com.cairiton.mega.exception.CompraNaoEncontradoException;
+import com.cairiton.mega.exception.NegocioException;
 import com.cairiton.mega.model.ItemCompra;
 import com.cairiton.mega.repository.ItemCompraRepository;
 import com.cairiton.mega.service.ItemCompraConfigService;
@@ -33,35 +36,50 @@ public class ItemCompraController {
 	private ItemCompraConfigService itemCompraConfigService;
 
 	@Autowired
-	private ItemCompraModelAssembler itemCompraModelAssembler;
+	private ItemDeCompraDTOAssembler itemDeCompraDTOAssembler;
 
 	@GetMapping
-	public List<ItemCompra> listaDeItemCompra() {
-		return itemCompraRepository.findAll();
+	public List<ItemCompraDTO> listaDeItemCompra() {
+		List<ItemCompra> listaTodoItemDeCompra = itemCompraRepository.findAll();
+		return itemDeCompraDTOAssembler.toCollectionModel(listaTodoItemDeCompra);
 	}
 
 	@GetMapping("/{itemCompraId}")
-	public ItemCompra buscaritemCompra(@PathVariable Integer itemCompraId) {
+	public ItemCompraDTO buscaritemCompra(@PathVariable Integer itemCompraId) {
 		ItemCompra itemCompra = itemCompraConfigService.buscarOuFalhar(itemCompraId);
 
-		return itemCompraModelAssembler.toModel(itemCompra);
-	}
-
-	@PostMapping
-	public ItemCompra adicionar(@Valid @RequestBody ItemCompra itemCompra) {
-		return itemCompraConfigService.salvar(itemCompra);
-	}
-
-	@PutMapping("/{itemCompraId}")
-	public ItemCompra atualizar(@PathVariable Integer itemCompraId,	@RequestBody @Valid ItemCompra itemCompra) {
-		
-		ItemCompra itemCompraAtual = itemCompraConfigService.buscarOuFalhar(itemCompraId);
-
-		BeanUtils.copyProperties(itemCompra, itemCompraAtual, "codigo");
-
-		return itemCompraConfigService.salvar(itemCompraAtual);
+		return itemDeCompraDTOAssembler.toModel(itemCompra);
 	}
 	
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public ItemCompraDTO adicionar(@Valid @RequestBody ItemCompra itemCompra) {
+		try {
+			itemCompra = itemCompraConfigService.salvar(itemCompra);
+			return itemDeCompraDTOAssembler.toModel(itemCompra);
+
+		} catch (CompraNaoEncontradoException e) {
+			throw new NegocioException(e.getMessage(), e);
+		}
+	}
+	
+	
+
+	@PutMapping("/{itemCompraId}")
+	public ItemCompraDTO atualizar(@PathVariable Integer itemCompraId, @RequestBody @Valid ItemCompra itemCompra) {
+
+		try {
+			ItemCompra itemCompraAtual = itemCompraConfigService.buscarOuFalhar(itemCompraId);
+			BeanUtils.copyProperties(itemCompra, itemCompraAtual, "codigo");
+
+			itemCompraAtual = itemCompraConfigService.salvar(itemCompraAtual);
+			return itemDeCompraDTOAssembler.toModel(itemCompraAtual);
+
+		} catch (CompraNaoEncontradoException e) {
+			throw new NegocioException(e.getMessage(), e);
+		}
+
+	}
 	@DeleteMapping("/{itemCompraId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void remover(@PathVariable Integer itemCompraId) {

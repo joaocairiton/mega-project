@@ -7,19 +7,20 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.cairiton.mega.dto.EnderecoDTO;
 import com.cairiton.mega.model.Endereco;
 
 @Component
-public class EnderecoModelAssembler {
+public class EnderecoDTOAssembler {
 	
 	@Autowired
 	private ModelMapper modelMapper;
 	
-	public Endereco toModel(Endereco endereco) {
-		return modelMapper.map(endereco, Endereco.class);
+	public EnderecoDTO toModel(Endereco endereco) {
+		return modelMapper.map(endereco, EnderecoDTO.class);
 	}
 	
-	public List<Endereco> toCollectionModel(List<Endereco> enderecos) {
+	public List<EnderecoDTO> toCollectionModel(List<Endereco> enderecos) {
 		return enderecos.stream()
 				.map(endereco -> toModel(endereco))
 				.collect(Collectors.toList());

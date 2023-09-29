@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cairiton.mega.assembler.CompraModelAssembler;
+import com.cairiton.mega.assembler.CompraDTOAssembler;
+import com.cairiton.mega.dto.CompraDTO;
+import com.cairiton.mega.exception.NegocioException;
+import com.cairiton.mega.exception.PessoaNaoEncontradoException;
 import com.cairiton.mega.model.Compra;
 import com.cairiton.mega.repository.CompraRepository;
 import com.cairiton.mega.service.CompraConfigService;
@@ -33,35 +36,48 @@ public class CompraController {
 	private CompraConfigService compraConfigService;
 
 	@Autowired
-	private CompraModelAssembler compraModelAssembler;
+	private CompraDTOAssembler compraDTOAssembler;
 
 	@GetMapping
-	public List<Compra> listaDeCompra() {
-		return compraRepository.findAll();
+	public List<CompraDTO> listaDeCompra() {
+		List<Compra> listarTodasCompras = compraRepository.findAll();
+
+		return compraDTOAssembler.toCollectionModel(listarTodasCompras);
 	}
 
 	@GetMapping("/{compraId}")
-	public Compra buscarCompra(@PathVariable Integer compraId) {
+	public CompraDTO buscarCompra(@PathVariable Integer compraId) {
 		Compra compra = compraConfigService.buscarOuFalhar(compraId);
 
-		return compraModelAssembler.toModel(compra);
+		return compraDTOAssembler.toModel(compra);
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Compra adicionar(@Valid @RequestBody Compra compra) {
-		return compraConfigService.salvar(compra);
+	public CompraDTO adicionar(@Valid @RequestBody Compra compra) {
+		try {
+			compra = compraConfigService.salvar(compra);
+			return compraDTOAssembler.toModel(compra);
+
+		} catch (PessoaNaoEncontradoException e) {
+			throw new NegocioException(e.getMessage(), e);
+		}
 	}
 
 	@PutMapping("/{compraId}")
-	public Compra atualizar(@PathVariable Integer compraId,
+	public CompraDTO atualizar(@PathVariable Integer compraId, @RequestBody @Valid Compra compra) {
 
-			@RequestBody @Valid Compra compra) {
-		Compra compraAtual = compraConfigService.buscarOuFalhar(compraId);
+		try {
+			Compra compraAtual = compraConfigService.buscarOuFalhar(compraId);
 
-		BeanUtils.copyProperties(compra, compraAtual, "codigo");
+			BeanUtils.copyProperties(compra, compraAtual, "codigo");
 
-		return compraConfigService.salvar(compraAtual);
+			return compraDTOAssembler.toModel(compraAtual);
+
+		} catch (PessoaNaoEncontradoException e) {
+			throw new NegocioException(e.getMessage(), e);
+		}
+
 	}
 
 	@DeleteMapping("/{compraId}")

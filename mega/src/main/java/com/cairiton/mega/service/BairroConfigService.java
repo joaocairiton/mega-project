@@ -6,7 +6,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cairiton.mega.dto.BairroDTO;
 import com.cairiton.mega.exception.BairroNaoEncontradoException;
 import com.cairiton.mega.exception.EntidadeEmUsoException;
 import com.cairiton.mega.exception.NegocioException;

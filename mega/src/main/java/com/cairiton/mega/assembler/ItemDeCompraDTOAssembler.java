@@ -7,23 +7,25 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.cairiton.mega.dto.ItemCompraDTO;
 import com.cairiton.mega.model.ItemCompra;
 
 
 @Component
-public class ItemCompraModelAssembler {
+public class ItemDeCompraDTOAssembler {
 	
 	@Autowired
 	private ModelMapper modelMapper;
 	
-	public ItemCompra toModel(ItemCompra itemCompra) {
-		return modelMapper.map(itemCompra, ItemCompra.class);
+	public ItemCompraDTO toModel(ItemCompra itemDeCompra) {
+		return modelMapper.map(itemDeCompra, ItemCompraDTO.class);
 	}
 	
-	public List<ItemCompra> toCollectionModel(List<ItemCompra> itemCompras) {
-		return itemCompras.stream()
-				.map(itemCompra -> toModel(itemCompra))
+	public List<ItemCompraDTO> toCollectionModel(List<ItemCompra> itensDeCompras) {
+		return itensDeCompras.stream()
+				.map(itemDeCompra -> toModel(itemDeCompra))
 				.collect(Collectors.toList());
+	
 	}
 
 }

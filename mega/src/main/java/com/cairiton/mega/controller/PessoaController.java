@@ -17,7 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cairiton.mega.assembler.PessoaModelAssembler;
+import com.cairiton.mega.assembler.PessoaDTOAssembler;
+import com.cairiton.mega.dto.PessoaDTO;
+import com.cairiton.mega.exception.EnderecoNaoEncontradoException;
+import com.cairiton.mega.exception.NegocioException;
+import com.cairiton.mega.exception.ProfissaoNaoEncontradoException;
 import com.cairiton.mega.model.Pessoa;
 import com.cairiton.mega.repository.PessoaRepository;
 import com.cairiton.mega.service.PessoaConfigService;
@@ -33,7 +37,7 @@ public class PessoaController {
 	private PessoaConfigService pessoaConfigService;
 
 	@Autowired
-	private PessoaModelAssembler pessoaModelAssembler;
+	private PessoaDTOAssembler pessoaDTOAssembler;
 
 	@GetMapping
 	public List<Pessoa> listaDePessoa() {
@@ -41,28 +45,41 @@ public class PessoaController {
 	}
 
 	@GetMapping("/{pessoaId}")
-	public Pessoa buscarPessoa(@PathVariable Integer pessoaId) {
+	public PessoaDTO buscarPessoa(@PathVariable Integer pessoaId) {
 		Pessoa pessoa = pessoaConfigService.buscarOuFalhar(pessoaId);
 
-		return pessoaModelAssembler.toModel(pessoa);
-	}
-
-	@PutMapping("/{pessoaId}")
-	public Pessoa atualizar(@PathVariable Integer pessoaId, @RequestBody @Valid Pessoa pessoa) {
-		
-		Pessoa pessoaAtual = pessoaConfigService.buscarOuFalhar(pessoaId);
-
-		BeanUtils.copyProperties(pessoa, pessoaAtual, "codigo");
-
-		return pessoaConfigService.salvar(pessoaAtual);
+		return pessoaDTOAssembler.toModel(pessoa);
 	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Pessoa adicionar(@Valid @RequestBody Pessoa pessoa) {
-		return pessoaConfigService.salvar(pessoa);
+	public PessoaDTO adicionar(@Valid @RequestBody Pessoa pessoa) {
+		try {
+			pessoa = pessoaConfigService.salvar(pessoa);
+			return pessoaDTOAssembler.toModel(pessoa);
+
+		} catch (ProfissaoNaoEncontradoException | EnderecoNaoEncontradoException e) {
+			throw new NegocioException(e.getMessage(), e);
+		}
 	}
-	
+
+	@PutMapping("/{pessoaId}")
+	public PessoaDTO atualizar(@PathVariable Integer pessoaId, @RequestBody @Valid Pessoa pessoa) {
+		try {
+			Pessoa pessoaAtual = pessoaConfigService.buscarOuFalhar(pessoaId);
+
+			BeanUtils.copyProperties(pessoa, pessoaAtual, "codigo");
+
+			pessoaAtual = pessoaConfigService.salvar(pessoaAtual);
+
+			return pessoaDTOAssembler.toModel(pessoaAtual);
+
+		} catch (ProfissaoNaoEncontradoException | EnderecoNaoEncontradoException e) {
+			throw new NegocioException(e.getMessage(), e);
+		}
+
+	}
+
 	@DeleteMapping("/{pessoaId}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void remover(@PathVariable Integer pessoaId) {

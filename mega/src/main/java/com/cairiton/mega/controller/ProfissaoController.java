@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cairiton.mega.assembler.ProfissaoModelAssembler;
+import com.cairiton.mega.assembler.ProfissaoDTOAssembler;
+import com.cairiton.mega.dto.ProfissaoDTO;
 import com.cairiton.mega.model.Profissao;
 import com.cairiton.mega.repository.ProfissaoRepository;
 import com.cairiton.mega.service.ProfissaoConfigService;
@@ -33,33 +34,38 @@ public class ProfissaoController {
 	private ProfissaoConfigService profissaoConfigService;
 
 	@Autowired
-	private ProfissaoModelAssembler profissaoModelAssembler;
+	private ProfissaoDTOAssembler profissaoDTOAssembler;
 
 	@GetMapping
-	public List<Profissao> listaDeProfissao() {
-		return profissaoRepository.findAll();
+	public List<ProfissaoDTO> listar() {
+		List<Profissao> todosAsProfissoes = profissaoRepository.findAll();
+
+		return profissaoDTOAssembler.toCollectionModel(todosAsProfissoes);
 	}
 
 	@GetMapping("/{profissaoId}")
-	public Profissao buscarProfissao(@PathVariable Integer profissaoId) {
+	public ProfissaoDTO buscarProfissao(@PathVariable Integer profissaoId) {
 		Profissao profissao = profissaoConfigService.buscarOuFalhar(profissaoId);
 
-		return profissaoModelAssembler.toModel(profissao);
+		return profissaoDTOAssembler.toModel(profissao);
 	}
-
+	
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public Profissao adicionar(@Valid @RequestBody Profissao profissao) {
-		return profissaoConfigService.salvar(profissao);
+	public ProfissaoDTO adicionar(@Valid @RequestBody Profissao profissao) {
+		profissao = profissaoConfigService.salvar(profissao);
+		
+		return profissaoDTOAssembler.toModel(profissao);
 	}
-
+	
 	@PutMapping("/{profissaoId}")
-	public Profissao atualizar(@PathVariable Integer profissaoId, @RequestBody @Valid Profissao profissao) {
+	public ProfissaoDTO atualizar(@PathVariable Integer profissaoId, @RequestBody @Valid Profissao profissao) {
 		Profissao profissaoAtual = profissaoConfigService.buscarOuFalhar(profissaoId);
 
 		BeanUtils.copyProperties(profissao, profissaoAtual, "codigo");
 
-		return profissaoConfigService.salvar(profissaoAtual);
+		profissaoAtual =  profissaoConfigService.salvar(profissaoAtual);
+		return profissaoDTOAssembler.toModel(profissaoAtual);
 	}
 
 	@DeleteMapping("/{profissaoId}")

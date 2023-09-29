@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -13,6 +14,9 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @Entity
 @Table(name = "item_compra")
@@ -32,8 +36,9 @@ public class ItemCompra {
 	private BigDecimal valor;
 
 	@NotNull
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "codigo_da_compra")
+	@JsonProperty(access = Access.WRITE_ONLY)
 	private Compra compra;
 
 	public ItemCompra() {
@@ -80,7 +85,8 @@ public class ItemCompra {
 		this.valor = valor;
 		this.compra = compra;
 	}
-
-
+	
+	
+	
 
 }
