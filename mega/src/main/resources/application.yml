@@ -1,6 +1,6 @@
 
 server:
-  port: 9090
+  port: 8080
   error:
     include-stacktrace: never
     
@@ -12,7 +12,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/banco2
     username: postgres
-    password: postgres
+    password: 153624
     
   jpa:
     hibernate:

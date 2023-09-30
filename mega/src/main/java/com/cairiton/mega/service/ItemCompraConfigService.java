@@ -22,6 +22,8 @@ public class ItemCompraConfigService {
 	@Autowired
 	private ItemCompraRepository itemCompraRepository;
 	
+
+	
 	@Autowired
 	private CompraConfigService compraConfigService;
 	
@@ -36,10 +38,9 @@ public class ItemCompraConfigService {
 	@Transactional
 	public ItemCompra salvar(ItemCompra itemCompra) {
 		
-		Compra compra = compraConfigService.buscar(itemCompra.getCompra().getCodigo());
+			Compra compra = compraConfigService.buscar(itemCompra.getCompra().getCodigo());
+			itemCompra.setCompra(compra);
 		
-		itemCompra.setCompra(compra);
-
 		return itemCompraRepository.save(itemCompra);
 	}
 	
